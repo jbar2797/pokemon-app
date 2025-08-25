@@ -1,0 +1,20 @@
+target-version = "py311"
+line-length = 100
+
+[lint]
+select = [
+  "E", "F", "W",   # pycodestyle / pyflakes
+  "I",             # isort
+  "B",             # flake8-bugbear
+  "UP",            # pyupgrade
+  "PL",            # pylint (subset)
+  "PT",            # pytest style
+]
+ignore = [
+  "PLR",           # allow reasonable refactor warnings initially
+]
+
+[format]
+quote-style = "preserve"
+indent-style = "space"
+line-ending = "lf"

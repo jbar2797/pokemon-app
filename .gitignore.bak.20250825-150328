@@ -1,0 +1,31 @@
+# UPDATED: Block 35R — do not ignore uv.lock (commit it for reproducibility)
+
+# Python / build
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual envs / uv
+.venv/
+.uv/
+# (Do not ignore uv.lock; we commit it for reproducibility)
+
+# Tooling caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Editors
+.vscode/
+.idea/
+
+# Project artifacts
+logs/
+artifacts/
+data/
+.env
+
+# OS
+.DS_Store

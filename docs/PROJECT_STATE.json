@@ -1,0 +1,11 @@
+{
+  "repo_url": "",
+  "current_sprint": "Sprint-0",
+  "current_step_id": "scaffold-repo-files",
+  "last_changeset_id": "chg-0001",
+  "flags": {
+    "ci_ready": true,
+    "quality_gates_ready": true,
+    "cli_bootstrapped": true
+  }
+}
