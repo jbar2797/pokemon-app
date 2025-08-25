@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from poke_pricer.config import Settings
 
 

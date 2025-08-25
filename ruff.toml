@@ -1,20 +1,15 @@
-target-version = "py311"
+# Ruff configuration (kept minimal but explicit)
 line-length = 100
+target-version = "py311"
+
+# Tell ruff our source layout so it can classify imports correctly.
+src = ["src"]
 
 [lint]
-select = [
-  "E", "F", "W",   # pycodestyle / pyflakes
-  "I",             # isort
-  "B",             # flake8-bugbear
-  "UP",            # pyupgrade
-  "PL",            # pylint (subset)
-  "PT",            # pytest style
-]
-ignore = [
-  "PLR",           # allow reasonable refactor warnings initially
-]
+select = ["E", "F", "I", "UP", "B"]
+ignore = []
 
-[format]
-quote-style = "preserve"
-indent-style = "space"
-line-ending = "lf"
+[lint.isort]
+# Crucial: classify our own package as first-party so third-party imports are placed before it.
+known-first-party = ["poke_pricer"]
+# (known-third-party is optional; Ruff auto-detects, but you could add ["typer", "pytest"] if you like)

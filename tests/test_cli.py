@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from poke_pricer.cli import app
 from typer.testing import CliRunner
+
+from poke_pricer.cli import app
 
 
 def test_version_runs() -> None:
