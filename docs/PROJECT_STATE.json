@@ -1,7 +1,7 @@
 {
-  "repo_url": "",
+  "repo_url": "https://github.com/jbar2797/pokemon-app",
   "current_sprint": "Sprint-0",
-  "current_step_id": "scaffold-repo-files",
+  "current_step_id": "repo-created-and-pushed",
   "last_changeset_id": "chg-0001",
   "flags": {
     "ci_ready": true,
