@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from typer.testing import CliRunner
+from typer.testing import CliRunner  # third-party
 
-from poke_pricer.cli import app
+from poke_pricer.cli import app  # first-party
 
 
 def test_version_runs() -> None:

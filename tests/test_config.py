@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import pytest
+import pytest  # third-party
 
-from poke_pricer.config import Settings
+from poke_pricer.config import Settings  # first-party
 
 
 def test_settings_defaults() -> None:
