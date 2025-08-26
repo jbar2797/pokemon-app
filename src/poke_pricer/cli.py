@@ -397,3 +397,33 @@ def movers_top(
     out.parent.mkdir(parents=True, exist_ok=True)
     mov.to_csv(out, index=False)
     console.print(f"[green]Top movers[/green] written to {out} ({len(mov)} rows).")
+
+
+# ---- reports ----
+reports_app = typer.Typer(help="Reporting utilities")
+app.add_typer(reports_app, name="reports")
+
+
+@reports_app.command("daily")  # type: ignore[misc]
+def reports_daily(
+    out: Annotated[
+        Path,
+        typer.Option(
+            "--out",
+            help="Directory to write daily CSVs",
+            exists=False,
+            file_okay=False,
+            dir_okay=True,
+        ),
+    ],
+    k: Annotated[int, typer.Option("--k", help="Top-K for winners/losers")] = 5,
+    date: Annotated[str | None, typer.Option("--date", help="YYYY-MM-DD")] = None,
+) -> None:
+    """Write catalog_summary.csv, top_movers.csv, and latest_prices.csv to a folder."""
+    from .reports.daily import write_daily_reports
+
+    out.mkdir(parents=True, exist_ok=True)
+    written = write_daily_reports(out, k=k, on_date=date)
+
+    files = ", ".join(p.name for p in written)
+    console.print(f"[green]Daily reports[/green] written to {out}: {files}")
