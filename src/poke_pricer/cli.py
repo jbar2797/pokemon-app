@@ -356,3 +356,44 @@ def catalog_top_movers(
     else:
         # Show a compact table in the console
         console.print(tm.to_string(index=False))
+
+
+# ---- movers ----
+movers_app = typer.Typer(help="Analytics: top daily winners/losers.")
+app.add_typer(movers_app, name="movers")
+
+
+@movers_app.command("top")
+def movers_top(
+    out: Annotated[
+        Path,
+        typer.Option(
+            "--out",
+            help="Output CSV path for top movers",
+            exists=False,
+            file_okay=True,
+            dir_okay=False,
+        ),
+    ],
+    k: Annotated[int, typer.Option("--k", help="Top-K for winners/losers")] = 5,
+    on_date: Annotated[
+        str | None,
+        typer.Option("--date", help="YYYY-MM-DD (defaults to latest available)"),
+    ] = None,
+) -> None:
+    """Compute/write top-K winners & losers for a day."""
+    from .analytics.data_access import load_prices_df
+    from .analytics.movers import compute_top_movers
+
+    df = load_prices_df()
+    if df.empty:
+        console.print(
+            "[yellow]No price data found. Seed or ingest data first."
+            " (e.g., 'poke-pricer demo seed' or 'poke-pricer ingest csv').[/yellow]"
+        )
+        raise typer.Exit(code=0)
+
+    mov = compute_top_movers(df, k=k, on_date=on_date)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    mov.to_csv(out, index=False)
+    console.print(f"[green]Top movers[/green] written to {out} ({len(mov)} rows).")
