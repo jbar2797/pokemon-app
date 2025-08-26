@@ -1,0 +1,40 @@
+name: daily-reports
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "20 06 * * *"  # daily 06:20 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Sync
+        run: |
+          uv lock
+          uv sync --dev
+
+      - name: Prepare data and run reports
+        run: |
+          mkdir -p artifacts/daily
+          uv run poke-pricer db init
+          uv run poke-pricer demo seed
+          uv run poke-pricer reports daily --out artifacts/daily --k 5
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-reports-${{ github.run_id }}
+          path: artifacts/daily/
+          if-no-files-found: error
