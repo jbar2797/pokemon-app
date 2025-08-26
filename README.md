@@ -53,3 +53,23 @@ uv run poke-pricer catalog summary
 # Export summary to CSV
 uv run poke-pricer catalog export --out artifacts/catalog_summary.csv
 ~~~
+
+## Sprint 5 – Top Movers
+
+```bash
+# Write top-5 winners & losers for the latest day
+uv run poke-pricer movers top --out artifacts/top_movers.csv --k 5
+
+# For a specific date
+uv run poke-pricer movers top --out artifacts/top_movers_2025-02-02.csv --k 5 --date 2025-02-02
+card_id,name,set_code,number,source,price,return_1d,date,bucket
+
+## Sprint 5 – Top Movers
+
+```bash
+# Write top-5 winners & losers for the latest day
+uv run poke-pricer movers top --out artifacts/top_movers.csv --k 5
+
+# For a specific date
+uv run poke-pricer movers top --out artifacts/top_movers_2025-02-02.csv --k 5 --date 2025-02-02
+card_id,name,set_code,number,source,price,return_1d,date,bucket
