@@ -31,3 +31,20 @@
 ### Notes/decisions
 - Avoided SQLAlchemy typed‑ORM relationships in Sprint 2; used explicit joins for stability.
 - Kept type coverage strict; suppressions are narrow and documented.
+
+## 2025-08-26T02:34:18Z — Sprint-3 Completed (chg-0003)
+
+**Step:** s3-ingestion-csv-upsert
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** c1ebcf8
+
+### Scope delivered
+- DB: uniqueness & indexes for cards/prices.
+- Ingestion: CSV → SQLite with idempotent upserts on (card_id, date, source).
+- CLI: `poke-pricer ingest csv --file <path> [--source <name>]`.
+- Tests: ingestion idempotency + export header check.
+- CI: green.
+
+### Notes
+- Kept ORM model simple (no relationships) to minimize typing friction in SA 2.x.
+- Future: bulk ingestion, schema validation, and source adapters.
