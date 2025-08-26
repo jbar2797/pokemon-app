@@ -48,3 +48,19 @@
 ### Notes
 - Kept ORM model simple (no relationships) to minimize typing friction in SA 2.x.
 - Future: bulk ingestion, schema validation, and source adapters.
+
+## 2025-08-26T03:26:10Z — Sprint-4 Completed (chg-0004)
+
+**Step:** s4-validation-catalog
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** 056e3f2
+
+### Scope delivered
+- Ingestion validation with Pydantic schema (`ingest/schema.py`).
+- Folder ingestion (`ingest dir`) with cumulative counts.
+- Catalog summary (`catalog summary` & `catalog export`), SQL counts, date range, sources.
+- Mypy/ruff hardened; CI green (mypy override limited to `poke_pricer.cli` decorators).
+
+### Notes/decisions
+- Used mypy-safe SQL result accessors (`one()`, `one_or_none()`) and robust distinct normalization.
+- Kept CLI typing strict elsewhere; `misc` disabled only for CLI decorators in `mypy.ini`.
