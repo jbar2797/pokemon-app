@@ -6,27 +6,26 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
-from . import __version__
 from .analytics.backtest import backtest_momentum_topk
 from .analytics.data_access import load_prices_df
 from .analytics.signals import compute_signals
+from .catalog.stats import catalog_summary_df, export_catalog_csv
 from .config import Settings
 from .db import init_db
-from .ingest.csv_ingest import ingest_csv
+from .ingest.csv_ingest import ingest_csv, ingest_dir, validate_csv
 from .io.csv_io import export_prices_csv
-from .logging_config import configure_logging
 from .services.seed import seed_demo
 
-app: typer.Typer = typer.Typer(help="Pokémon Pricer CLI")
 console = Console()
+app = typer.Typer(no_args_is_help=True)
 
-# Sub-apps
-db_app = typer.Typer(help="Database utilities")
-demo_app = typer.Typer(help="Demo data")
-prices_app = typer.Typer(help="Prices utilities")
-signals_app = typer.Typer(help="Signal computation")
-backtest_app = typer.Typer(help="Backtesting utilities")
-ingest_app = typer.Typer(help="Ingestion pipelines")
+db_app = typer.Typer()
+demo_app = typer.Typer()
+prices_app = typer.Typer()
+signals_app = typer.Typer()
+backtest_app = typer.Typer()
+ingest_app = typer.Typer()
+catalog_app = typer.Typer()
 
 app.add_typer(db_app, name="db")
 app.add_typer(demo_app, name="demo")
@@ -34,43 +33,37 @@ app.add_typer(prices_app, name="prices")
 app.add_typer(signals_app, name="signals")
 app.add_typer(backtest_app, name="backtest")
 app.add_typer(ingest_app, name="ingest")
+app.add_typer(catalog_app, name="catalog")
 
 
-@app.callback(invoke_without_command=False)  # type: ignore[misc]
-def _bootstrap(ctx: typer.Context) -> None:
-    """Initialize settings and logging for all commands."""
-    settings = Settings()
-    configure_logging(settings.log_level)
-    ctx.obj = {"settings": settings}
+@app.callback(invoke_without_command=False)
+def _bootstrap() -> None:
+    """Global initialization hook (reserved)."""
+    return
 
 
-@app.command()  # type: ignore[misc]
+@app.command()
 def version() -> None:
-    """Show package version."""
-    console.print(f"pokemon-pricer {__version__}")
+    """Print tool version (package version)."""
+    console.print("pokemon-pricer 0.1.0")
 
 
-@app.command()  # type: ignore[misc]
+@app.command()
 def check() -> None:
-    """Run basic environment checks and print warnings (always exit 0)."""
-    settings = Settings()
-    configure_logging(settings.log_level)
-    if not settings.data_dir.exists():
-        console.print(
-            f"[yellow]- Data dir not found: {settings.data_dir!s} "
-            f"(this is OK; run 'poke-pricer init' to create it)[/yellow]"
-        )
-    console.print("[green]Environment OK[/green]")
+    """Basic environment sanity check."""
+    console.print("Environment OK")
 
 
-@app.command()  # type: ignore[misc]
+@app.command()
 def init(
     dir: Annotated[
         Path | None,
-        typer.Option(help="Create data/logs/artifacts under this dir (default: current directory)"),
+        typer.Option(
+            help="Create data/logs/artifacts here",
+        ),
     ] = None,
 ) -> None:
-    """Create local project directories."""
+    """Create local data/logs/artifacts directories."""
     base = dir or Path(".")
     for sub in ("data", "logs", "artifacts"):
         p = base / sub
@@ -79,32 +72,32 @@ def init(
     console.print("[green]Initialization complete[/green]")
 
 
-@app.command()  # type: ignore[misc]
+@app.command()
 def env() -> None:
-    """Print sanitized environment settings."""
+    """Print sanitized environment variables."""
     s = Settings()
     for k, v in s.as_public_dict().items():
         console.print(f"{k} = {v}")
 
 
 # ---- db ----
-@db_app.command("init")  # type: ignore[misc]
+@db_app.command("init")
 def db_init() -> None:
-    """Create local SQLite tables at POKEPRICER_SQLITE_PATH."""
+    """Create database tables."""
     init_db()
-    console.print("[green]Database initialized[/green]")
+    console.print("[green]DB initialized[/green]")
 
 
 # ---- demo ----
-@demo_app.command("seed")  # type: ignore[misc]
-def demo_seed_cmd() -> None:
+@demo_app.command("seed")
+def demo_seed() -> None:
     """Insert demo cards and ~30 days of price points."""
     num_cards, num_prices = seed_demo()
     console.print(f"[green]Seeded[/green] {num_cards} cards and {num_prices} price points.")
 
 
 # ---- prices ----
-@prices_app.command("export")  # type: ignore[misc]
+@prices_app.command("export")
 def prices_export(
     out: Annotated[
         Path,
@@ -117,26 +110,26 @@ def prices_export(
         ),
     ],
 ) -> None:
-    """Export prices (joined with cards) to CSV."""
+    """Export prices joined with cards to CSV."""
     n = export_prices_csv(out)
     console.print(f"[green]Exported[/green] {n} rows to {out}")
 
 
 # ---- signals ----
-@signals_app.command("compute")  # type: ignore[misc]
+@signals_app.command("compute")
 def signals_compute(
     out: Annotated[
         Path,
         typer.Option(
             "--out",
-            help="Output CSV path for signals",
+            help="Output CSV for signals",
             exists=False,
             file_okay=True,
             dir_okay=False,
         ),
     ],
 ) -> None:
-    """Compute signals and export to CSV."""
+    """Compute basic signals and write CSV."""
     df = load_prices_df()
     if df.empty:
         console.print(
@@ -151,25 +144,34 @@ def signals_compute(
 
 
 # ---- backtest ----
-@backtest_app.command("momentum")  # type: ignore[misc]
+@backtest_app.command("momentum")
 def backtest_momentum(
     out: Annotated[
         Path,
         typer.Option(
             "--out",
-            help="Output CSV path for backtest equity",
+            help="Output CSV for equity",
             exists=False,
             file_okay=True,
             dir_okay=False,
         ),
     ],
-    k: Annotated[int, typer.Option("--k", help="Top-K by momentum each day")] = 1,
+    k: Annotated[
+        int,
+        typer.Option(
+            "--k",
+            help="Top-K by momentum each day",
+        ),
+    ] = 1,
     lookback: Annotated[
         int,
-        typer.Option("--lookback", help="Momentum lookback days"),
+        typer.Option(
+            "--lookback",
+            help="Momentum lookback days",
+        ),
     ] = 14,
 ) -> None:
-    """Run a tiny cross-sectional momentum backtest and export equity curve to CSV."""
+    """Run simple momentum backtest and write equity CSV."""
     df = load_prices_df()
     if df.empty:
         console.print(
@@ -185,13 +187,13 @@ def backtest_momentum(
 
 
 # ---- ingest ----
-@ingest_app.command("csv")  # type: ignore[misc]
+@ingest_app.command("csv")
 def ingest_csv_cmd(
     file: Annotated[
         Path,
         typer.Option(
             "--file",
-            help="CSV path with columns: name,set_code,number,date,price[,source,rarity]",
+            help="CSV with columns: name,set_code,number,date,price[,source,rarity]",
             exists=True,
             file_okay=True,
             dir_okay=False,
@@ -199,15 +201,98 @@ def ingest_csv_cmd(
     ],
     source: Annotated[
         str | None,
-        typer.Option("--source", help="Default source name if not present in CSV"),
+        typer.Option(
+            "--source",
+            help="Default source name",
+        ),
     ] = None,
 ) -> None:
-    """Ingest a CSV file into the local database (idempotent on card_id,date,source)."""
+    """Ingest a CSV file into the local database."""
     created, inserted, skipped = ingest_csv(file, default_source=source or "csv")
     console.print(
         "[green]Ingest complete[/green] "
-        f"(cards_created≈{created}, prices_inserted={inserted}, skipped={skipped})."
+        f"(cards_created={created}, prices_inserted={inserted}, skipped={skipped})."
     )
+
+
+@ingest_app.command("validate")
+def ingest_validate_cmd(
+    file: Annotated[
+        Path,
+        typer.Option(
+            "--file",
+            help="CSV to validate",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+        ),
+    ],
+) -> None:
+    """Validate a CSV against the expected schema."""
+    valid, invalid = validate_csv(file)
+    console.print(f"[green]Valid[/green]: {valid}, [yellow]Invalid[/yellow]: {invalid}")
+
+
+@ingest_app.command("dir")
+def ingest_dir_cmd(
+    path: Annotated[
+        Path,
+        typer.Option(
+            "--path",
+            help="Folder containing CSV files",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+        ),
+    ],
+    source: Annotated[
+        str | None,
+        typer.Option(
+            "--source",
+            help="Default source name",
+        ),
+    ] = None,
+) -> None:
+    """Ingest all CSV files from a directory (non-recursive)."""
+    created, inserted, skipped = ingest_dir(path, default_source=source or "csv")
+    console.print(
+        "[green]Dir ingest complete[/green] "
+        f"(cards_created={created}, prices_inserted={inserted}, skipped={skipped})."
+    )
+
+
+# ---- catalog ----
+@catalog_app.command("summary")
+def catalog_summary() -> None:
+    """Print summary (counts, date range, sources)."""
+    df = catalog_summary_df()
+    if df.empty:
+        console.print("[yellow]No data available.[/yellow]")
+        return
+    row = df.iloc[0].to_dict()
+    console.print(
+        "Summary: "
+        f"cards={row['total_cards']} prices={row['total_prices']} "
+        f"range={row['min_date']}..{row['max_date']} sources={row['sources']}"
+    )
+
+
+@catalog_app.command("export")
+def catalog_export(
+    out: Annotated[
+        Path,
+        typer.Option(
+            "--out",
+            help="CSV path for summary",
+            exists=False,
+            file_okay=True,
+            dir_okay=False,
+        ),
+    ],
+) -> None:
+    """Export summary to CSV."""
+    export_catalog_csv(out)
+    console.print(f"[green]Catalog summary[/green] written to {out}")
 
 
 def main() -> None:
