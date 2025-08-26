@@ -64,3 +64,15 @@
 ### Notes/decisions
 - Used mypy-safe SQL result accessors (`one()`, `one_or_none()`) and robust distinct normalization.
 - Kept CLI typing strict elsewhere; `misc` disabled only for CLI decorators in `mypy.ini`.
+
+## 2025-08-26T20:05:03Z — Sprint-5 In Progress (chg-0005)
+
+**Step:** s5-top-movers-report
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** 05de0fd
+
+### Scope
+- Report: `reports/top_movers.py` — compute top movers by windowed return.
+- CLI: `poke-pricer catalog top-movers --window <days> --top <k> [--out <csv>]`.
+- Tests: coverage for export and terminal view.
+- CI: green on feature branch.
