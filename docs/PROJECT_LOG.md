@@ -76,3 +76,48 @@
 - CLI: `poke-pricer catalog top-movers --window <days> --top <k> [--out <csv>]`.
 - Tests: coverage for export and terminal view.
 - CI: green on feature branch.
+
+## 2025-08-26T22:23:06Z — Sprint-5 Completed (chg-0005)
+
+**Step:** s5-top-movers
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** 7db5863
+
+### Scope delivered
+-  — compute daily winners/losers (top-K by 1‑day return).
+- CLI: .
+- Tests: .
+- Docs: README usage. CI green.
+
+### Notes/decisions
+- Reuse existing price pipeline; keep ORM simple to maintain typing stability.
+
+## 2025-08-26T22:23:33Z — Sprint-5 Completed (chg-0005)
+
+**Step:** s5-top-movers
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** 7db5863
+
+### Scope delivered
+-  — compute daily winners/losers (top-K by 1‑day return).
+- CLI: .
+- Tests: .
+- Docs: README usage. CI green.
+
+### Notes/decisions
+- Reuse existing price pipeline; keep ORM simple to maintain typing stability.
+
+## 2025-08-26T22:32:07Z — Sprint-5 Completed (chg-0005)
+
+**Step:** s5-top-movers
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** 7db5863
+
+### Scope delivered
+- `analytics/movers.py` — compute daily winners/losers (top-K by 1-day return).
+- CLI: `poke-pricer movers top --out <csv> [--k N] [--date YYYY-MM-DD]`.
+- Tests: `tests/test_movers.py`.
+- Docs: README usage. CI green.
+
+### Notes/decisions
+- Reuse existing price pipeline; keep ORM simple to maintain typing stability.
