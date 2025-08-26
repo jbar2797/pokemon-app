@@ -53,3 +53,33 @@ uv run poke-pricer catalog summary
 # Export summary to CSV
 uv run poke-pricer catalog export --out artifacts/catalog_summary.csv
 ~~~
+## Sprint 5 – Top Movers
+
+Quick commands to generate Top-K winners & losers from your local SQLite data.
+
+```bash
+# Most recent date in your DB, write top-5 winners & losers to CSV
+uv run poke-pricer movers top --out artifacts/top_movers.csv --k 5
+
+# For a specific date (YYYY-MM-DD)
+uv run poke-pricer movers top --out artifacts/top_movers_2025-02-02.csv --k 5 --date 2025-02-02
+```
+
+CSV schema (header):
+
+```csv
+card_id,name,set_code,number,source,price,return_1d,date,bucket
+```
+
+Notes
+
+* `bucket` ∈ {`winner`,`loser`}
+* `return_1d` = today / yesterday − 1
+
+Seed or ingest first, e.g.:
+
+```bash
+uv run poke-pricer demo seed
+# or
+uv run poke-pricer ingest csv --file data/prices.csv --source csv
+```
