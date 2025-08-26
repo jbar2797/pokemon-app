@@ -1,11 +1,11 @@
-# Requirements Artifacts
+# Requirements & Reference Docs
 
-Place the following provided documents here when pushing to GitHub (retain original filenames):
+Place the authoritative documents here. Expected files:
 
-- `Pokémon Card Investment Platform – Software Requirements Specification (SRS).pdf`
-- `Product Requirements Document_ Pokémon Card Investment Platform.pdf`
-- `ARCHITECTURE_Pokemon_Pricer_GPT5Pro.pdf`
-- `Backtesting_and_Evaluation_Specification.md`
-- `Signals_Methodology_Master_Architecture.md`
+- **SRS** — `SRS_Pokemon_Pricer.pdf`
+- **PRD** — `PRD_Pokemon_Pricer.pdf`
+- **Architecture** — `ARCHITECTURE_Pokemon_Pricer_GPT5Pro.pdf`
+- **Backtesting Spec** — `Backtesting_and_Evaluation_Specification.md`
+- **Signals Methodology** — `Signals_Methodology_Master_Architecture.md`
 
-> Until then, this repo references these as the product/architecture source of truth.
+> After copying files into this folder, commit and push so they’re tracked in GitHub.
