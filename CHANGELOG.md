@@ -26,3 +26,12 @@ All notable changes to this project will be documented here.
 
 ### Tooling
 - mypy: narrow override for CLI decorators only; strict typing everywhere else.
+
+## [0.1.0-chg-0006] - 2025-08-26
+### Added
+- Daily reports bundle: `catalog_summary.csv`, `top_movers.csv`, `latest_prices.csv`.
+- CLI: `poke-pricer reports daily --out <dir> [--k N] [--date YYYY-MM-DD]`.
+- Tests: `tests/test_reports_daily.py`.
+
+### CI
+- Scheduled workflow `.github/workflows/daily-reports.yml` to build and upload the bundle artifact.
