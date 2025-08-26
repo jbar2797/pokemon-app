@@ -37,3 +37,19 @@ This repository follows the **WSL2 + `uv`** workflow, strict typing (`mypy`), li
 ## Next
 
 - After these files exist in this project’s “Files” area, we’ll initialize the GitHub repo and push, including adding your SRS/PRD/Architecture/Backtesting/Signals artifacts under `docs/requirements/`.
+
+## Sprint 4 – Validation, Directory Ingest, Catalog
+
+~~~bash
+# Validate a CSV file (schema: name,set_code,number,date,price[,source,rarity])
+uv run poke-pricer ingest validate --file data/prices.csv
+
+# Ingest all CSVs from a folder (non-recursive), counting created/inserted/skipped
+uv run poke-pricer ingest dir --path data --source csv
+
+# Print catalog summary (total cards/prices, date range, sources)
+uv run poke-pricer catalog summary
+
+# Export summary to CSV
+uv run poke-pricer catalog export --out artifacts/catalog_summary.csv
+~~~
