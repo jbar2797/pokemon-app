@@ -12,6 +12,7 @@ from .analytics.data_access import load_prices_df
 from .analytics.signals import compute_signals
 from .config import Settings
 from .db import init_db
+from .ingest.csv_ingest import ingest_csv
 from .io.csv_io import export_prices_csv
 from .logging_config import configure_logging
 from .services.seed import seed_demo
@@ -25,12 +26,14 @@ demo_app = typer.Typer(help="Demo data")
 prices_app = typer.Typer(help="Prices utilities")
 signals_app = typer.Typer(help="Signal computation")
 backtest_app = typer.Typer(help="Backtesting utilities")
+ingest_app = typer.Typer(help="Ingestion pipelines")
 
 app.add_typer(db_app, name="db")
 app.add_typer(demo_app, name="demo")
 app.add_typer(prices_app, name="prices")
 app.add_typer(signals_app, name="signals")
 app.add_typer(backtest_app, name="backtest")
+app.add_typer(ingest_app, name="ingest")
 
 
 @app.callback(invoke_without_command=False)  # type: ignore[misc]
@@ -94,7 +97,7 @@ def db_init() -> None:
 
 # ---- demo ----
 @demo_app.command("seed")  # type: ignore[misc]
-def demo_seed() -> None:
+def demo_seed_cmd() -> None:
     """Insert demo cards and ~30 days of price points."""
     num_cards, num_prices = seed_demo()
     console.print(f"[green]Seeded[/green] {num_cards} cards and {num_prices} price points.")
@@ -137,7 +140,8 @@ def signals_compute(
     df = load_prices_df()
     if df.empty:
         console.print(
-            "[yellow]No price data found. Seed first with 'poke-pricer demo seed'.[/yellow]"
+            "[yellow]No price data found. Seed or ingest first "
+            "('poke-pricer demo seed' or 'poke-pricer ingest csv').[/yellow]"
         )
         raise typer.Exit(code=0)
     sig = compute_signals(df)
@@ -169,7 +173,8 @@ def backtest_momentum(
     df = load_prices_df()
     if df.empty:
         console.print(
-            "[yellow]No price data found. Seed first with 'poke-pricer demo seed'.[/yellow]"
+            "[yellow]No price data found. Seed or ingest first "
+            "('poke-pricer demo seed' or 'poke-pricer ingest csv').[/yellow]"
         )
         raise typer.Exit(code=0)
     bt = backtest_momentum_topk(df, lookback=lookback, top_k=k)
@@ -177,6 +182,32 @@ def backtest_momentum(
     bt.to_csv(out, index=False)
     msg_tail = f" last_equity={bt['equity'].iloc[-1]:.4f}" if not bt.empty else ""
     console.print(f"[green]Backtest written[/green] to {out} ({len(bt)} rows).{msg_tail}")
+
+
+# ---- ingest ----
+@ingest_app.command("csv")  # type: ignore[misc]
+def ingest_csv_cmd(
+    file: Annotated[
+        Path,
+        typer.Option(
+            "--file",
+            help="CSV path with columns: name,set_code,number,date,price[,source,rarity]",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+        ),
+    ],
+    source: Annotated[
+        str | None,
+        typer.Option("--source", help="Default source name if not present in CSV"),
+    ] = None,
+) -> None:
+    """Ingest a CSV file into the local database (idempotent on card_id,date,source)."""
+    created, inserted, skipped = ingest_csv(file, default_source=source or "csv")
+    console.print(
+        "[green]Ingest complete[/green] "
+        f"(cards_created≈{created}, prices_inserted={inserted}, skipped={skipped})."
+    )
 
 
 def main() -> None:
