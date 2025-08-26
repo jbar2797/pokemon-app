@@ -20,14 +20,17 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     data_dir: Path = Path("data")
 
-    # API credentials (optional until wired)
+    # Local SQLite database path (used for Sprint 1)
+    sqlite_path: Path = Path("data/poke_pricer.db")
+
+    # API credentials (stubs for later sprints)
     tcgplayer_public_key: SecretStr | None = None
     tcgplayer_private_key: SecretStr | None = None
     ebay_app_id: SecretStr | None = None
     psa_api_key: SecretStr | None = None
     cgc_api_key: SecretStr | None = None
 
-    # Optional database DSN
+    # Optional Postgres DSN (unused in Sprint 1)
     postgres_dsn: str | None = None
 
     def as_public_dict(self) -> dict[str, str]:
@@ -40,6 +43,7 @@ class Settings(BaseSettings):
             "debug": str(self.debug),
             "log_level": self.log_level,
             "data_dir": str(self.data_dir),
+            "sqlite_path": str(self.sqlite_path),
             "tcgplayer_public_key": mask(self.tcgplayer_public_key),
             "tcgplayer_private_key": mask(self.tcgplayer_private_key),
             "ebay_app_id": mask(self.ebay_app_id),

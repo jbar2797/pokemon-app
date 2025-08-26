@@ -18,13 +18,13 @@ dependencies = [
   "scikit-learn>=1.4.0",
   "scipy>=1.13.0",
   "statsmodels>=0.14.2",
+  "sqlmodel>=0.0.21",
 ]
 
 [project.scripts]
 poke-pricer = "poke_pricer.cli:main"
 
 [tool.uv]
-# IMPORTANT: This makes uv install this project as a package so `poke-pricer` works.
 package = true
 dev-dependencies = [
   "ruff>=0.5.6",

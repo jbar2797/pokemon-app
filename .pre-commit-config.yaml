@@ -1,6 +1,7 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.6
+    # Known-good tag; if a newer one exists, we can autoupdate later.
+    rev: v0.6.4
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -22,3 +23,5 @@ repos:
           - pydantic>=2.7
           - pydantic-settings>=2.2.1
           - types-PyYAML>=6.0.12.20240808
+          - sqlmodel>=0.0.24
+          - sqlalchemy>=2.0.43
