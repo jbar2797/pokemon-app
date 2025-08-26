@@ -10,7 +10,7 @@
     "analytics_ready": true,
     "backtest_ready": true,
     "ingestion_ready": true,
-    "validation_ready": false,
+    "validation_ready": true,
     "bulk_ingest_ready": false,
     "catalog_ready": true
   }
