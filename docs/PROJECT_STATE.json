@@ -1,14 +1,17 @@
 {
   "repo_url": "https://github.com/jbar2797/pokemon-app",
-  "current_sprint": "Sprint-3",
-  "current_step_id": "s3-ingestion-csv-upsert",
-  "last_changeset_id": "chg-0003",
+  "current_sprint": "Sprint-4",
+  "current_step_id": "s4-validators-bulking-catalog",
+  "last_changeset_id": "chg-0004",
   "flags": {
     "ci_ready": true,
     "quality_gates_ready": true,
     "cli_bootstrapped": true,
     "analytics_ready": true,
     "backtest_ready": true,
-    "ingestion_ready": true
+    "ingestion_ready": true,
+    "validation_ready": false,
+    "bulk_ingest_ready": false,
+    "catalog_ready": false
   }
 }
