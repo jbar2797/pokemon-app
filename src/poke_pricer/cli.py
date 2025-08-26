@@ -7,6 +7,9 @@ import typer
 from rich.console import Console
 
 from . import __version__
+from .analytics.backtest import backtest_momentum_topk
+from .analytics.data_access import load_prices_df
+from .analytics.signals import compute_signals
 from .config import Settings
 from .db import init_db
 from .io.csv_io import export_prices_csv
@@ -20,10 +23,14 @@ console = Console()
 db_app = typer.Typer(help="Database utilities")
 demo_app = typer.Typer(help="Demo data")
 prices_app = typer.Typer(help="Prices utilities")
+signals_app = typer.Typer(help="Signal computation")
+backtest_app = typer.Typer(help="Backtesting utilities")
 
 app.add_typer(db_app, name="db")
 app.add_typer(demo_app, name="demo")
 app.add_typer(prices_app, name="prices")
+app.add_typer(signals_app, name="signals")
+app.add_typer(backtest_app, name="backtest")
 
 
 @app.callback(invoke_without_command=False)  # type: ignore[misc]
@@ -98,12 +105,78 @@ def demo_seed() -> None:
 def prices_export(
     out: Annotated[
         Path,
-        typer.Option("--out", help="Output CSV path", exists=False, file_okay=True, dir_okay=False),
+        typer.Option(
+            "--out",
+            help="Output CSV path",
+            exists=False,
+            file_okay=True,
+            dir_okay=False,
+        ),
     ],
 ) -> None:
     """Export prices (joined with cards) to CSV."""
     n = export_prices_csv(out)
     console.print(f"[green]Exported[/green] {n} rows to {out}")
+
+
+# ---- signals ----
+@signals_app.command("compute")  # type: ignore[misc]
+def signals_compute(
+    out: Annotated[
+        Path,
+        typer.Option(
+            "--out",
+            help="Output CSV path for signals",
+            exists=False,
+            file_okay=True,
+            dir_okay=False,
+        ),
+    ],
+) -> None:
+    """Compute signals and export to CSV."""
+    df = load_prices_df()
+    if df.empty:
+        console.print(
+            "[yellow]No price data found. Seed first with 'poke-pricer demo seed'.[/yellow]"
+        )
+        raise typer.Exit(code=0)
+    sig = compute_signals(df)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    sig.to_csv(out, index=False)
+    console.print(f"[green]Signals written[/green] to {out} ({len(sig)} rows).")
+
+
+# ---- backtest ----
+@backtest_app.command("momentum")  # type: ignore[misc]
+def backtest_momentum(
+    out: Annotated[
+        Path,
+        typer.Option(
+            "--out",
+            help="Output CSV path for backtest equity",
+            exists=False,
+            file_okay=True,
+            dir_okay=False,
+        ),
+    ],
+    k: Annotated[int, typer.Option("--k", help="Top-K by momentum each day")] = 1,
+    lookback: Annotated[
+        int,
+        typer.Option("--lookback", help="Momentum lookback days"),
+    ] = 14,
+) -> None:
+    """Run a tiny cross-sectional momentum backtest and export equity curve to CSV."""
+    df = load_prices_df()
+    if df.empty:
+        console.print(
+            "[yellow]No price data found. Seed first with 'poke-pricer demo seed'.[/yellow]"
+        )
+        raise typer.Exit(code=0)
+    bt = backtest_momentum_topk(df, lookback=lookback, top_k=k)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    bt.to_csv(out, index=False)
+    msg_tail = f" last_equity={bt['equity'].iloc[-1]:.4f}" if not bt.empty else ""
+    console.print(f"[green]Backtest written[/green] to {out} ({len(bt)} rows).{msg_tail}")
 
 
 def main() -> None:
