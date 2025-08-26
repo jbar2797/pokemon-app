@@ -300,3 +300,59 @@ def main() -> None:
 
 
 __all__ = ["app", "main"]
+
+
+# ---- catalog (top-movers) ----
+@catalog_app.command("top-movers")
+def catalog_top_movers(
+    window: Annotated[
+        int,
+        typer.Option(
+            "--window",
+            "-w",
+            help="Lookback window (days)",
+            min=1,
+        ),
+    ] = 14,
+    top: Annotated[
+        int,
+        typer.Option(
+            "--top",
+            "-k",
+            help="Number of cards to show",
+            min=1,
+        ),
+    ] = 10,
+    out: Annotated[
+        Path | None,
+        typer.Option(
+            "--out",
+            help="Optional CSV path to write report",
+            exists=False,
+            file_okay=True,
+            dir_okay=False,
+        ),
+    ] = None,
+) -> None:
+    """Show or export top movers by windowed return."""
+    # Import locally to avoid top-of-file churn
+    from .analytics.data_access import load_prices_df
+    from .reports.top_movers import compute_top_movers
+
+    df = load_prices_df()
+    if df.empty:
+        console.print(
+            "[yellow]No price data found. Ingest or seed first "
+            "('poke-pricer demo seed' or 'poke-pricer ingest csv').[/yellow]"
+        )
+        raise typer.Exit(code=0)
+
+    tm = compute_top_movers(df, window_days=window, top_k=top)
+
+    if out is not None:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        tm.to_csv(out, index=False)
+        console.print(f"[green]Top movers[/green] (window={window}, top={top}) written to {out}")
+    else:
+        # Show a compact table in the console
+        console.print(tm.to_string(index=False))
