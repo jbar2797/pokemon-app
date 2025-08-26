@@ -1,7 +1,7 @@
 {
   "repo_url": "https://github.com/jbar2797/pokemon-app",
   "current_sprint": "Sprint-4",
-  "current_step_id": "s4-validators-bulking-catalog",
+  "current_step_id": "s4-validation-catalog",
   "last_changeset_id": "chg-0004",
   "flags": {
     "ci_ready": true,
@@ -12,6 +12,6 @@
     "ingestion_ready": true,
     "validation_ready": false,
     "bulk_ingest_ready": false,
-    "catalog_ready": false
+    "catalog_ready": true
   }
 }
