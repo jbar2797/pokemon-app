@@ -7,3 +7,10 @@ All notable changes to this project will be documented here.
 - Sprint 0 scaffold with `uv` workflow, quality gates, CI, and state files.
 - Minimal Typer CLI, typed settings, logging config.
 - ADR #0001 documenting architecture/tooling choices.
+
+## [0.1.0-chg-0003] - 2025-08-26
+### Added
+- CSV ingestion pipeline with idempotent upserts (SQLite).
+- CLI command `ingest csv` with tests and CI.
+### Changed
+- DB models: uniqueness + indexes to support ingestion guarantees.
