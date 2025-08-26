@@ -1,11 +1,13 @@
 {
   "repo_url": "https://github.com/jbar2797/pokemon-app",
-  "current_sprint": "Sprint-0",
-  "current_step_id": "repo-created-and-pushed",
-  "last_changeset_id": "chg-0001",
+  "current_sprint": "Sprint-2",
+  "current_step_id": "s2-analytics-signals-backtest",
+  "last_changeset_id": "chg-0002",
   "flags": {
     "ci_ready": true,
     "quality_gates_ready": true,
-    "cli_bootstrapped": true
+    "cli_bootstrapped": true,
+    "analytics_ready": true,
+    "backtest_ready": true
   }
 }
