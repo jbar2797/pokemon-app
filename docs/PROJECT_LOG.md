@@ -136,3 +136,18 @@
 
 ### Notes/decisions
 - Reuse the existing price pipeline; keep ORM simple to maintain typing stability.
+
+## 2025-08-26T23:23:58Z — Sprint-6 Completed (chg-0006)
+
+**Step:** s6-daily-reports
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** 1714ef8
+
+### Scope delivered
+- `reports/daily.py` — writes `catalog_summary.csv`, `top_movers.csv`, `latest_prices.csv`.
+- CLI: `poke-pricer reports daily --out <dir> [--k N] [--date YYYY-MM-DD]`.
+- Tests: `tests/test_reports_daily.py`.
+- CI: `.github/workflows/daily-reports.yml` (manual + scheduled).
+
+### Notes/decisions
+- Reused existing analytics/csv pipeline; kept CLI typing strict and line-length ≤100.

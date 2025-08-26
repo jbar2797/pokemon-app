@@ -1,8 +1,8 @@
 {
   "repo_url": "https://github.com/jbar2797/pokemon-app",
-  "current_sprint": "Sprint-5",
-  "current_step_id": "s5-top-movers",
-  "last_changeset_id": "chg-0005",
+  "current_sprint": "Sprint-6",
+  "current_step_id": "s6-daily-reports",
+  "last_changeset_id": "chg-0006",
   "flags": {
     "ci_ready": true,
     "quality_gates_ready": true,
