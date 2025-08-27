@@ -1,0 +1,24 @@
+name: Release Freeze (until MVP)
+on:
+  release:
+    types: [published, created, edited, released]
+permissions:
+  contents: write
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete the release immediately (freeze policy)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+            const release = context.payload.release;
+            core.info(`Freeze policy active. Deleting release id=${release.id} tag=${release.tag_name}`);
+            // Delete the release object
+            await github.rest.repos.deleteRelease({ owner, repo, release_id: release.id });
+            // Optionally keep the tag; comment the next 3 lines out if you want to keep tags
+            // await github.rest.git.deleteRef({ owner, repo, ref: `tags/${release.tag_name}` }).catch(() => {
+            //   core.warning(`Tag ${release.tag_name} did not exist or could not be deleted.`);
+            // });
+            core.notice('Release removed per policy. Please wait for MVP before creating releases.');
