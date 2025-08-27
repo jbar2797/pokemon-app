@@ -194,3 +194,17 @@
 
 ### Notes
 - Workflow intentionally lacks `workflow_dispatch`; it runs on push/PR to reduce manual triggers.
+
+## 2025-08-27T02:59:26Z — Sprint-12 Completed (chg-0012)
+
+**Step:** s12-coverage
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** b671dcd
+
+### Scope delivered
+- CI coverage gating at 85% (workflow + artifact upload).
+- Local coverage proven w/ pytest-cov and XML report.
+- Build hygiene: SPDX license string + license-files.
+
+### Notes/decisions
+- Keep coverage gate at 85% until API/UI land; raise incrementally post-MVP.

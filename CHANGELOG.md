@@ -51,3 +51,9 @@ All notable changes to this project will be documented here.
 - Enforce ≥85% test coverage in CI; upload coverage.xml artifact.
 ### Build
 - Use SPDX license string in pyproject; preserve LICENSE via license-files.
+
+## [0.3.0-chg-0012] - 2025-08-27
+### Added
+- CI coverage gating (85%) with coverage.xml artifact.
+### Build
+- SPDX license string + license-files to remove deprecation warning.
