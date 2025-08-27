@@ -1,0 +1,41 @@
+name: Alerts → Slack
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 10 * * *"  # 10:15 UTC daily (adjust as needed)
+
+jobs:
+  alerts-to-slack:
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Sync
+        run: |
+          uv lock
+          uv sync --dev
+
+      - name: Prepare data (replace with real ingest when ready)
+        run: |
+          uv run poke-pricer db init
+          uv run poke-pricer demo seed
+
+      - name: Generate alerts CSV
+        run: |
+          mkdir -p artifacts/alerts
+          uv run poke-pricer alerts scan \
+            --out artifacts/alerts/alerts.csv \
+            --threshold 0.10 --lookback 30
+
+      - name: Post to Slack (if webhook present)
+        if: env.SLACK_WEBHOOK_URL != ''
+        run: |
+          uv run poke-pricer notify slack \
+            --file artifacts/alerts/alerts.csv
