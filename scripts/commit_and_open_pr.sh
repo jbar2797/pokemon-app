@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # scripts/commit_and_open_pr.sh
-# Purpose: Commit all changes, push branch, create PR, watch CI, request auto-merge.
-# Usage: bash scripts/commit_and_open_pr.sh "<commit-msg>" "<pr-title>" "<pr-body>"
-# Requires: scripts/open_pr (if present, will be used), otherwise falls back to gh.
+# Usage:
+#   bash scripts/commit_and_open_pr.sh "<commit message>" "<PR title>" "<PR body>"
+#
+# This script:
+#   1) Runs pre-commit on staged changes (idempotent)
+#   2) Commits any staged changes with the provided message
+#   3) Pushes the current branch
+#   4) Calls scripts/open_pr.sh to open (or reuse) a PR, and enable squash auto-merge
 
 set -Eeuo pipefail
-
-REPO="${REPO:-$HOME/projects/pokemon-app}"
-BASE="${BASE:-main}"
-BRANCH="$(git -C "$REPO" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
 
 if [[ $# -lt 3 ]]; then
   echo "Usage: bash scripts/commit_and_open_pr.sh <commit-msg> <pr-title> <pr-body>" >&2
@@ -19,51 +20,37 @@ COMMIT_MSG="$1"
 PR_TITLE="$2"
 PR_BODY="$3"
 
-main() {
-  cd "$REPO"
+# Resolve repo root so we can always call open_pr.sh reliably
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
 
-  if [[ -z "$BRANCH" || "$BRANCH" == "HEAD" ]]; then
-    echo "ERROR: Could not determine current branch. Are you inside a git branch?" >&2
-    exit 1
-  fi
+# Show branch / remote for context
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+BASE="main"
+echo "==> Current branch: ${BRANCH}"
 
-  echo "==> Stage & commit"
+# Run pre-commit on staged changes (idempotent)
+echo "==> Stage & commit"
+uv run pre-commit run --all-files || true
+
+# Commit if there is anything staged or changed; otherwise allow no-op
+if ! git diff --cached --quiet || ! git diff --quiet; then
   git add -A
-  git commit -m "$COMMIT_MSG" || true
+  git commit -m "${COMMIT_MSG}"
+else
+  echo "Nothing to commit (working tree clean)."
+fi
 
-  echo "==> Push branch"
-  git push -u origin "$BRANCH" || true
+# Push the current branch
+echo "==> Push branch"
+git push -u origin "${BRANCH}" || true
 
-  # Prefer your open_pr wrapper if present
-  if command -v open_pr >/dev/null 2>&1; then
-    echo "==> Using local 'open_pr' helper"
-    open_pr "$BRANCH" "$BASE" "$PR_TITLE" "$PR_BODY" || true
-  else
-    echo "==> 'open_pr' not found; using gh fallback"
-    if gh pr view "$BRANCH" >/dev/null 2>&1; then
-      echo "PR already exists for ${BRANCH}"
-    else
-      gh pr create \
-        --base "$BASE" \
-        --head "$BRANCH" \
-        --title "$PR_TITLE" \
-        --body  "$PR_BODY"
-    fi
-  fi
+# Call our PR helper; if it fails, print a helpful message
+echo "==> Open or reuse PR via scripts/open_pr.sh"
+if [[ -x "${REPO_ROOT}/scripts/open_pr.sh" ]]; then
+  bash "${REPO_ROOT}/scripts/open_pr.sh" "${BRANCH}" "${BASE}" "${PR_TITLE}" "${PR_BODY}" || true
+else
+  echo "WARNING: scripts/open_pr.sh not found or not executable; install it or run 'gh pr create' manually." >&2
+fi
 
-  echo "==> Watch latest PR CI run (if present)"
-  RUN_ID="$(gh run list --branch "$BRANCH" --event pull_request --limit 1 --json databaseId -q '.[0].databaseId' || true)"
-  if [[ -n "${RUN_ID:-}" ]]; then
-    gh run watch "$RUN_ID" --interval 5 || true
-    echo "Conclusion: $(gh run view "$RUN_ID" --json conclusion -q '.conclusion' 2>/dev/null || echo unknown)"
-  else
-    echo "No PR run found yet (push usually triggers it)."
-  fi
-
-  echo "==> Request squash auto-merge (harmless if restricted)"
-  gh pr merge "$BRANCH" --squash --delete-branch --auto || true
-
-  echo "All done: PR should be open and CI running."
-}
-
-main "$@"
+echo "All done: PR should be open (or reused) and CI running."
