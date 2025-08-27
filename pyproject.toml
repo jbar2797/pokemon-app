@@ -34,8 +34,23 @@ dev-dependencies = [
   "hypothesis>=6.112.0",
   "pre-commit>=3.7.1",
   "types-PyYAML>=6.0.12.20240808",
+  "pytest-cov>=6.2.1",
 ]
 
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+omit = [
+  "src/poke_pricer/__main__.py",
+  "src/poke_pricer/logging_config.py",
+]
+
+[tool.coverage.report]
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "pragma: no cover",
+]
