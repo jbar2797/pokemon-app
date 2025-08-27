@@ -17,5 +17,10 @@
     "movers_ready": true,
     "alerts_ready": true,
     "release_ready": true
+  },
+  "last_completed_sprint": 12,
+  "last_change": "chg-0012",
+  "ci": {
+    "coverage_gate": ">=85%"
   }
 }

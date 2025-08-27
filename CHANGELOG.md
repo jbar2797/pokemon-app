@@ -45,3 +45,9 @@ All notable changes to this project will be documented here.
 - Release workflow (tag-based builds with artifacts).
 ### Internal
 - Verified local build via .
+
+## [0.2.1-chg-0012] - 2025-08-27
+### CI
+- Enforce ≥85% test coverage in CI; upload coverage.xml artifact.
+### Build
+- Use SPDX license string in pyproject; preserve LICENSE via license-files.

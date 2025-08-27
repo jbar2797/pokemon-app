@@ -180,3 +180,17 @@
 
 ### Notes/decisions
 - Kept packaging simple (wheel + sdist); PyPI publish deferred until credentials are ready.
+
+## 2025-08-27T02:48:56Z — Sprint-12 Completed (chg-0012)
+
+**Step:** s12-coverage
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** 4d13d01
+
+### Scope delivered
+- CI: coverage gating workflow (≥85%) and artifact upload of coverage.xml.
+- Local pytest/coverage config;  added as dev dependency.
+- Packaging: switched  license to SPDX string; .
+
+### Notes
+- Workflow intentionally lacks `workflow_dispatch`; it runs on push/PR to reduce manual triggers.
