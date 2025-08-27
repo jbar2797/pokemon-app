@@ -1,0 +1,41 @@
+name: alerts (daily anomalies)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 7 * * *"  # 07:15 UTC daily
+
+permissions:
+  contents: read
+
+jobs:
+  alerts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Sync
+        run: |
+          uv lock
+          uv sync --dev
+
+      - name: Prepare data
+        run: |
+          uv run poke-pricer db init
+          uv run poke-pricer demo seed
+
+      - name: Generate alerts CSV
+        run: |
+          mkdir -p artifacts/alerts
+          uv run poke-pricer alerts scan --out artifacts/alerts/alerts.csv --threshold 0.10 --lookback 30
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: alerts-${{ github.run_id }}
+          path: artifacts/alerts/
+          if-no-files-found: error

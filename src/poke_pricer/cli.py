@@ -261,6 +261,61 @@ def ingest_dir_cmd(
     )
 
 
+# ---- alerts ----
+alerts_app = typer.Typer(no_args_is_help=True)
+app.add_typer(alerts_app, name="alerts")
+
+
+@alerts_app.command("scan")  # type: ignore[misc]
+def alerts_scan(
+    out: Annotated[
+        Path,
+        typer.Option(
+            "--out",
+            help="Output CSV path",
+            exists=False,
+            file_okay=True,
+            dir_okay=False,
+        ),
+    ],
+    threshold: Annotated[
+        float,
+        typer.Option(
+            "--threshold",
+            help="abs(1d return) trigger",
+            min=0.0,
+        ),
+    ] = 0.10,
+    lookback: Annotated[
+        int,
+        typer.Option(
+            "--lookback",
+            help="lookback days for new high/low",
+        ),
+    ] = 30,
+    date: Annotated[
+        str | None,
+        typer.Option(
+            "--date",
+            help="YYYY-MM-DD (defaults to latest)",
+        ),
+    ] = None,
+) -> None:
+    """Scan latest day for spikes/new highs/lows and write a CSV."""
+    from .analytics.data_access import load_prices_df
+    from .reports.anomalies import scan_anomalies_df
+
+    df = load_prices_df()
+    if df.empty:
+        console.print("[yellow]No price data found. Seed or ingest first.[/yellow]")
+        raise typer.Exit(code=0)
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    res = scan_anomalies_df(df, ret_threshold=threshold, lookback=lookback, on_date=date)
+    res.to_csv(out, index=False)
+    console.print(f"[green]Alerts[/green] written to {out} ({len(res)} rows).")
+
+
 # ---- catalog ----
 @catalog_app.command("summary")
 def catalog_summary() -> None:
