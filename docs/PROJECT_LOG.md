@@ -232,3 +232,12 @@
 - FastAPI app: `/health`, `/v1/catalog/summary`, `/v1/reports/top-movers`.
 - CLI: `poke-pricer api serve` for local/dev runs.
 - CI gates (lint, typecheck, tests, coverage) green.
+
+## 2025-08-27T05:57:05Z — Sprint-14 Completed (chg-0014)
+**Step:** s14-api-hardening
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** fd55e0b
+
+### Scope delivered
+- Clean FastAPI module (typed handlers; no duplicates).
+- Portable bash smoke script using uv.

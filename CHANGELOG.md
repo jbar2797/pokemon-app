@@ -67,3 +67,9 @@ All notable changes to this project will be documented here.
 ### Added
 - Public API (health, catalog summary, top movers).
 - CLI: `poke-pricer api serve` for local dev.
+
+## [0.5.0-chg-0014] - 2025-08-27
+### Changed
+- API module housekeeping and reliability improvements.
+### Tools
+- Added bash smoke script (scripts/smoke_api.sh).
