@@ -39,3 +39,9 @@ All notable changes to this project will be documented here.
 ## [0.1.0-chg-0007] - 2025-08-27
 ### Added
 - Alerts scan (spike/new high/low) with CLI, tests, and an alerts GitHub Actions artifact.
+
+## [0.1.0-chg-0008] - 2025-08-27
+### Added
+- Slack notifications for alert CSV (CLI + tests), optional GH workflow integration.
+### Fixed
+- Wrapped long Typer options in CLI to satisfy Ruff E501.

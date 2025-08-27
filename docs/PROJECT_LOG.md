@@ -166,3 +166,18 @@
 
 ### Notes/decisions
 - Kept analytics pure Pandas; emit CSV for downstream email/Slack in later sprints.
+
+## 2025-08-27T00:44:32Z — Sprint-8 Completed (chg-0008)
+
+**Step:** s8-notify-slack
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** cea4415
+
+### Scope delivered
+- Slack notifier (library + CLI) with `--dry-run`.
+- Tests.
+- Optional GH workflow step to post alerts after artifact generation.
+
+### Notes/decisions
+- Kept CLI parameters wrapped to satisfy Ruff E501 (<=100 chars).
+- Posting uses Slack Incoming Webhook; secured via repo secret `SLACK_WEBHOOK_URL`.
