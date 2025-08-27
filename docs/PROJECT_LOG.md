@@ -232,3 +232,12 @@
 - FastAPI app: `/health`, `/v1/catalog/summary`, `/v1/reports/top-movers`.
 - CLI: `poke-pricer api serve` for local/dev runs.
 - CI gates (lint, typecheck, tests, coverage) green.
+
+## 2025-08-27T07:05:02Z — Sprint-15 Completed (chg-0015)
+**Step:** s15-api-polish
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** 21ac22b
+
+### Added
+- CORS (permissive for MVP).
+- OpenAPI tags for clearer docs.
