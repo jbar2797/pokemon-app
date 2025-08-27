@@ -181,3 +181,17 @@
 ### Notes/decisions
 - Kept CLI parameters wrapped to satisfy Ruff E501 (<=100 chars).
 - Posting uses Slack Incoming Webhook; secured via repo secret `SLACK_WEBHOOK_URL`.
+
+## 2025-08-27T00:50:36Z — Sprint-8 Completed (chg-0008)
+
+**Step:** s8-notify-slack
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** 0ffb6c9
+
+### Scope delivered
+- Slack notifier (library + CLI  with `--dry-run`).
+- Optional GH workflow to post alerts after alerts CSV is generated.
+- Tests and CI green.
+
+### Notes/decisions
+- Kept CLI options ≤100 chars and added  to avoid accidental posts.
