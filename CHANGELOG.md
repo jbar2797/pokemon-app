@@ -57,3 +57,8 @@ All notable changes to this project will be documented here.
 - CI coverage gating (85%) with coverage.xml artifact.
 ### Build
 - SPDX license string + license-files to remove deprecation warning.
+
+## [0.4.0-chg-0013] - 2025-08-27
+### Added
+- Public API: health, catalog summary, top movers.
+- CLI: `poke-pricer api serve` for local dev.
