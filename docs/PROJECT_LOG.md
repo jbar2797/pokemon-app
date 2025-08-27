@@ -180,3 +180,17 @@
 
 ### Notes/decisions
 - Kept packaging simple (wheel + sdist); PyPI publish deferred until credentials are ready.
+
+## 2025-08-27T01:22:53Z — Sprint-10 Completed (chg-0010)
+
+**Step:** s10-qa-bundle
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** 9368c32
+
+### Scope delivered
+- CLI: `poke-pricer qa bundle --out <dir> [--stale-days N]`.
+- Writes: `qa_summary.csv`, `qa_duplicates.csv`, `qa_stale_cards.csv`.
+- Tests: `tests/test_reports_qa.py`.
+
+### Notes/decisions
+- Reused existing data access; kept lines ≤100 chars for Ruff (E501) compliance.

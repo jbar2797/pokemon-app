@@ -1,8 +1,8 @@
 {
   "repo_url": "https://github.com/jbar2797/pokemon-app",
-  "current_sprint": "Sprint-9",
-  "current_step_id": "s9-packaging-release",
-  "last_changeset_id": "chg-0009",
+  "current_sprint": "Sprint-10",
+  "current_step_id": "s10-qa-bundle",
+  "last_changeset_id": "chg-0010",
   "flags": {
     "ci_ready": true,
     "quality_gates_ready": true,
@@ -16,6 +16,7 @@
     "reports_ready": true,
     "movers_ready": true,
     "alerts_ready": true,
-    "release_ready": true
+    "release_ready": true,
+    "qa_ready": true
   }
 }
