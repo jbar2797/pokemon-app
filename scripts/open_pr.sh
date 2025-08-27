@@ -1,45 +1,41 @@
 #!/usr/bin/env bash
-# scripts/open_pr.sh
-# Usage:
-#   bash scripts/open_pr.sh <branch> <base> "<PR title>" "<PR body>"
-
 set -Eeuo pipefail
 
-if [[ $# -lt 4 ]]; then
-  echo "Usage: bash scripts/open_pr.sh <branch> <base> \"<PR title>\" \"<PR body>\"" >&2
+# Usage:
+#   scripts/open_pr.sh <head-branch> [base-branch]
+#
+# Example:
+#   scripts/open_pr.sh feature/s16-api-cards main
+
+HEAD="${1:-$(git rev-parse --abbrev-ref HEAD)}"
+BASE="${2:-main}"
+
+REPO="$(git remote get-url origin | sed -E 's#.*github\.com[:/](.+)\.git#\1#')"
+
+echo "Repository: ${REPO}"
+echo "Branch: ${HEAD}  Base: ${BASE}"
+
+if [[ "${HEAD}" == "${BASE}" ]]; then
+  echo "ERROR: head and base are both '${BASE}'. You cannot open a PR from ${BASE} to ${BASE}." >&2
+  echo "Tip: create a feature branch first:" >&2
+  echo "  bash scripts/start_feature.sh feature/sXX-something" >&2
   exit 2
 fi
 
-BRANCH="$1"
-BASE="$2"
-PR_TITLE="$3"
-PR_BODY="$4"
-
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-cd "$REPO_ROOT"
-
-echo "Repository: $(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo unknown)"
-echo "Branch: ${BRANCH}  Base: ${BASE}"
-
-# Create or open PR
-if gh pr view "${BRANCH}" >/dev/null 2>&1; then
-  echo "PR already exists for ${BRANCH}"
+# If a PR already exists for this head branch, do nothing.
+if gh pr view --repo "${REPO}" --head "${HEAD}" >/dev/null 2>&1; then
+  echo "PR already exists for ${HEAD} → ${BASE}."
 else
+  echo "Creating PR for ${HEAD} → ${BASE}…"
   gh pr create \
+    --repo "${REPO}" \
     --base "${BASE}" \
-    --head "${BRANCH}" \
-    --title "${PR_TITLE}" \
-    --body  "${PR_BODY}"
+    --head "${HEAD}" \
+    --title "$(git log -1 --pretty=%s)" \
+    --body  "Automated PR opened by scripts/open_pr.sh"
 fi
 
-# Watch latest PR run (if any)
-RUN_ID="$(gh run list --branch "${BRANCH}" --event pull_request --limit 1 --json databaseId -q '.[0].databaseId' || true)"
-if [[ -n "${RUN_ID:-}" ]]; then
-  gh run watch "${RUN_ID}" --interval 5 || true
-  echo "Conclusion: $(gh run view "${RUN_ID}" --json conclusion -q '.conclusion' 2>/dev/null || echo unknown)"
-else
-  echo "No PR run found yet (push usually triggers it)."
-fi
+# Try to enable squash auto-merge (harmless if restricted)
+gh pr merge --repo "${REPO}" "${HEAD}" --squash --delete-branch --auto || true
 
-# Request squash auto-merge (harmless if restricted)
-gh pr merge "${BRANCH}" --squash --delete-branch --auto || true
+echo "Done."
