@@ -482,3 +482,59 @@ def reports_daily(
 
     files = ", ".join(p.name for p in written)
     console.print(f"[green]Daily reports[/green] written to {out}: {files}")
+
+
+# ---- notify ----
+notify_app = typer.Typer(help="Notification utilities")
+app.add_typer(notify_app, name="notify")
+
+
+@notify_app.command("slack")  # type: ignore[misc]
+def notify_slack(
+    file: Annotated[
+        Path,
+        typer.Option(
+            "--file",
+            help="Alerts CSV produced by 'poke-pricer alerts scan'",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+        ),
+    ],
+    webhook: Annotated[
+        str | None,
+        typer.Option("--webhook", help="Slack Incoming Webhook URL (or set SLACK_WEBHOOK_URL)"),
+    ] = None,
+    dry_run: Annotated[
+        bool,
+        typer.Option(
+            "--dry-run",
+            help="Print message instead of posting",
+        ),
+    ] = False,
+) -> None:
+    """Post alerts CSV to Slack."""
+    import os
+
+    import pandas as pd
+
+    from .notify.slack import build_alerts_text, post_text
+
+    df = pd.read_csv(file)
+    text = build_alerts_text(df, max_rows=10)
+
+    if dry_run:
+        console.print("[cyan]DRY-RUN[/cyan] Slack message:\n" + text)
+        raise typer.Exit(code=0)
+
+    url = webhook or os.environ.get("SLACK_WEBHOOK_URL")
+    if not url:
+        console.print("[red]Missing Slack webhook.[/red] Use --webhook or set SLACK_WEBHOOK_URL.")
+        raise typer.Exit(code=1)
+
+    res = post_text(url, text)
+    if res.ok:
+        console.print("[green]Posted to Slack.[/green]")
+    else:
+        console.print(f"[red]Slack post failed[/red] (status={res.status}): {res.body}")
+        raise typer.Exit(code=1)
