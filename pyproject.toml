@@ -57,3 +57,7 @@ exclude_also = [
   "if TYPE_CHECKING:",
   "pragma: no cover",
 ]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["poke_pricer*"]
