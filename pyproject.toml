@@ -20,6 +20,8 @@ dependencies = [
   "scipy>=1.13.0",
   "statsmodels>=0.14.2",
   "sqlmodel>=0.0.21",
+  "fastapi>=0.116.1",
+  "uvicorn[standard]>=0.35.0",
 ]
 
 [project.scripts]
@@ -35,6 +37,7 @@ dev-dependencies = [
   "pre-commit>=3.7.1",
   "types-PyYAML>=6.0.12.20240808",
   "pytest-cov>=6.2.1",
+  "httpx>=0.28.1",
 ]
 
 [tool.pytest.ini_options]
