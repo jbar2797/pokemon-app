@@ -1,13 +1,19 @@
-# Release Policy (Freeze Until MVP)
+# Release Policy (MVP Freeze)
 
-**Policy:** No GitHub Releases will be created until the MVP milestone is approved.
+**Policy:** We do **not** publish GitHub Releases or version tags (e.g., `v0.2.1`) until the initial MVP is approved.
 
-- Git tags (e.g., sprint tags) may still be created for traceability.
-- The `Release Freeze` workflow deletes any GitHub Release created during the freeze.
-- When MVP is approved:
-  - Create `v1.0.0` (or agreed SemVer) as the first Release.
-  - From that point, Releases resume per the versioning policy.
+## Why
+- Prevents confusion around pre‑MVP artifacts.
+- Keeps users focused on the live MVP milestone rather than pre‑releases.
 
-**How to lift the freeze:**
-- Remove or disable `.github/workflows/release-freeze.yml`.
-- Re-enable any Release/Publish workflows as needed.
+## How We Enforce It
+- **Actions:** `.github/workflows/release-freeze.yml` is enabled. If a Release is created, the workflow deletes it.
+- **Publishers:** Any “Release/Publish” workflow is disabled.
+- **Helper:** `scripts/enforce_release_freeze.sh` keeps the policy enforced.
+
+## Lifting the Freeze
+1. Re‑enable the Release workflow(s):
+   `gh workflow enable .github/workflows/release.yml`
+2. Disable the freeze guard (optional once we’re truly ready):
+   `gh workflow disable .github/workflows/release-freeze.yml`
+3. Tag and publish the first MVP Release (e.g., `v1.0.0`).
