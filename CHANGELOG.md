@@ -35,3 +35,7 @@ All notable changes to this project will be documented here.
 
 ### CI
 - Scheduled workflow `.github/workflows/daily-reports.yml` to build and upload the bundle artifact.
+
+## [0.1.0-chg-0007] - 2025-08-27
+### Added
+- Alerts scan (spike/new high/low) with CLI, tests, and an alerts GitHub Actions artifact.

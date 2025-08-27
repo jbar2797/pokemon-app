@@ -151,3 +151,18 @@
 
 ### Notes/decisions
 - Reused existing analytics/csv pipeline; kept CLI typing strict and line-length ≤100.
+
+## 2025-08-27T00:20:30Z — Sprint-7 Completed (chg-0007)
+
+**Step:** s7-alerts
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** 8f2d020
+
+### Scope delivered
+- `reports/anomalies.py` — scan for 1‑day spikes and rolling new highs/lows.
+- CLI: `poke-pricer alerts scan --out <csv> [--threshold F] [--lookback N] [--date YYYY-MM-DD]`.
+- Tests: `tests/test_alerts.py`.
+- CI: `.github/workflows/alerts.yml` (manual + scheduled) to publish alerts artifact.
+
+### Notes/decisions
+- Kept analytics pure Pandas; emit CSV for downstream email/Slack in later sprints.
