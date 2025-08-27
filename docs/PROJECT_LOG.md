@@ -222,3 +222,13 @@
 
 ### Notes/decisions
 - Keep API minimal until UI and ingestion scale arrive.
+
+## 2025-08-27T04:53:18Z — Sprint-13 Completed (chg-0013)
+**Step:** s13-public-api
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** 3c47f0f
+
+### Scope delivered
+- FastAPI app: `/health`, `/v1/catalog/summary`, `/v1/reports/top-movers`.
+- CLI: `poke-pricer api serve` for local/dev runs.
+- CI gates (lint, typecheck, tests, coverage) green.

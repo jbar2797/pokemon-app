@@ -62,3 +62,8 @@ All notable changes to this project will be documented here.
 ### Added
 - Public API: health, catalog summary, top movers.
 - CLI: `poke-pricer api serve` for local dev.
+
+## [0.4.0-chg-0013] - 2025-08-27
+### Added
+- Public API (health, catalog summary, top movers).
+- CLI: `poke-pricer api serve` for local dev.
