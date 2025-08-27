@@ -1,4 +1,5 @@
 [project]
+license-files = ["LICENSE"]
 name = "pokemon-pricer"
 version = "0.1.0"
 description = "Pokémon Card Investment Platform: pricing engine, signals, and backtesting."
