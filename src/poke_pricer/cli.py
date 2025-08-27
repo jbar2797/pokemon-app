@@ -354,6 +354,39 @@ def main() -> None:
     app()
 
 
+# ---- qa ----
+qa_app = typer.Typer(no_args_is_help=True, help="QA utilities")
+
+
+@qa_app.command("bundle")  # type: ignore[misc]
+def qa_bundle(
+    out: Annotated[
+        Path,
+        typer.Option(
+            "--out",
+            help="Directory for QA CSVs",
+            exists=False,
+            file_okay=False,
+            dir_okay=True,
+        ),
+    ],
+    stale_days: Annotated[
+        int,
+        typer.Option(
+            "--stale-days",
+            help="Flag cards older than this many days",
+        ),
+    ] = 30,
+) -> None:
+    """Write qa_summary.csv, qa_duplicates.csv, qa_stale_cards.csv."""
+    from .reports.qa import write_qa_bundle
+
+    out.mkdir(parents=True, exist_ok=True)
+    written = write_qa_bundle(out, stale_days=stale_days)
+    files = ", ".join(p.name for p in written)
+    console.print(f"[green]QA bundle[/green] written to {out}: {files}")
+
+
 __all__ = ["app", "main"]
 
 
@@ -487,6 +520,8 @@ def reports_daily(
 # ---- notify ----
 notify_app = typer.Typer(help="Notification utilities")
 app.add_typer(notify_app, name="notify")
+
+app.add_typer(qa_app, name="qa")
 
 
 @notify_app.command("slack")  # type: ignore[misc]
