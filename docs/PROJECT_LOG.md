@@ -194,3 +194,17 @@
 
 ### Notes/decisions
 - Reused existing data access; kept lines ≤100 chars for Ruff (E501) compliance.
+
+## 2025-08-27T01:34:29Z — Sprint-10 Completed (chg-0010)
+
+**Step:** s10-qa-bundle
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** b2e7f99
+
+### Scope delivered
+- CLI: `poke-pricer qa bundle --out <dir> [--stale-days N]`.
+- Writes: `qa_summary.csv`, `qa_duplicates.csv`, `qa_stale_cards.csv`.
+- Tests: `tests/test_reports_qa.py`.
+
+### Notes/decisions
+- Reused existing data access; stayed ≤100 chars/line for Ruff (E501).
