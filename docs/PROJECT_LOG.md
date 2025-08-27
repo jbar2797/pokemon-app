@@ -166,3 +166,17 @@
 
 ### Notes/decisions
 - Kept analytics pure Pandas; emit CSV for downstream email/Slack in later sprints.
+
+## 2025-08-27T00:56:28Z — Sprint-9 Completed (chg-0009)
+
+**Step:** s9-packaging-release
+**Repo:** https://github.com/jbar2797/pokemon-app.git
+**Commit:** 07c4a74
+
+### Scope delivered
+-  verified (wheel + sdist).
+- GitHub Actions release workflow (tag push -> build & attach artifacts).
+- Release tagging process documented.
+
+### Notes/decisions
+- Kept packaging simple (wheel + sdist); PyPI publish deferred until credentials are ready.

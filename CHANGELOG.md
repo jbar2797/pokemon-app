@@ -39,3 +39,9 @@ All notable changes to this project will be documented here.
 ## [0.1.0-chg-0007] - 2025-08-27
 ### Added
 - Alerts scan (spike/new high/low) with CLI, tests, and an alerts GitHub Actions artifact.
+
+## [0.2.0-chg-0009] - 2025-08-27
+### Added
+- Release workflow (tag-based builds with artifacts).
+### Internal
+- Verified local build via .
