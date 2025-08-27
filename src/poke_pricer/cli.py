@@ -26,6 +26,7 @@ signals_app = typer.Typer()
 backtest_app = typer.Typer()
 ingest_app = typer.Typer()
 catalog_app = typer.Typer()
+reports_app = typer.Typer(help="Reporting utilities")
 
 app.add_typer(db_app, name="db")
 app.add_typer(demo_app, name="demo")
@@ -387,10 +388,6 @@ def qa_bundle(
     console.print(f"[green]QA bundle[/green] written to {out}: {files}")
 
 
-__all__ = ["app", "main"]
-
-
-# ---- catalog (top-movers) ----
 @catalog_app.command("top-movers")
 def catalog_top_movers(
     window: Annotated[
@@ -486,10 +483,79 @@ def movers_top(
     mov.to_csv(out, index=False)
     console.print(f"[green]Top movers[/green] written to {out} ({len(mov)} rows).")
 
+    # --- Portfolio & Watchlist -------------------------------------------------
 
-# ---- reports ----
-reports_app = typer.Typer(help="Reporting utilities")
+
 app.add_typer(reports_app, name="reports")
+
+portfolio_app = typer.Typer(help="Portfolio & watchlist")
+
+
+@portfolio_app.command("watchlist")  # type: ignore[misc]
+def portfolio_watchlist(
+    file: Annotated[
+        Path,
+        typer.Option(
+            "--file",
+            help="CSV with columns: name,set_code,number",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+        ),
+    ],
+    out: Annotated[
+        Path,
+        typer.Option(
+            "--out",
+            help="Output CSV for latest prices",
+            exists=False,
+            file_okay=True,
+            dir_okay=False,
+        ),
+    ],
+) -> None:
+    """Write latest prices for a watchlist CSV."""
+    from .portfolio.value import watchlist_latest_prices
+
+    df = watchlist_latest_prices(file)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(out, index=False)
+    console.print(f"[green]Watchlist[/green] written to {out} ({len(df)} rows).")
+
+
+@portfolio_app.command("value")  # type: ignore[misc]
+def portfolio_value(
+    file: Annotated[
+        Path,
+        typer.Option(
+            "--file",
+            help=("Holdings CSV with: name,set_code,number,qty,cost_per_unit"),
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+        ),
+    ],
+    out: Annotated[
+        Path,
+        typer.Option(
+            "--out",
+            help="Output CSV for portfolio valuation",
+            exists=False,
+            file_okay=True,
+            dir_okay=False,
+        ),
+    ],
+) -> None:
+    """Write portfolio valuation CSV from holdings."""
+    from .portfolio.value import portfolio_valuation
+
+    df = portfolio_valuation(file)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(out, index=False)
+    console.print(f"[green]Portfolio[/green] written to {out} ({len(df)} rows).")
+
+
+app.add_typer(portfolio_app, name="portfolio")
 
 
 @reports_app.command("daily")  # type: ignore[misc]
