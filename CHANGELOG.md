@@ -45,3 +45,9 @@ All notable changes to this project will be documented here.
 - Slack notifications for alert CSV (CLI + tests), optional GH workflow integration.
 ### Fixed
 - Wrapped long Typer options in CLI to satisfy Ruff E501.
+
+## [0.1.0-chg-0008] - 2025-08-27
+### Added
+- Slack notifications (library, CLI , tests).
+### CI
+- Optional workflow step to post Slack alerts when alerts CSV is present.
