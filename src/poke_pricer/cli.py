@@ -639,3 +639,31 @@ def notify_slack(
     else:
         console.print(f"[red]Slack post failed[/red] (status={res.status}): {res.body}")
         raise typer.Exit(code=1)
+
+
+# ---- api ----
+api_app = typer.Typer(help="Run the HTTP API")
+
+
+@api_app.command("serve")  # type: ignore[misc]
+def api_serve(
+    host: Annotated[
+        str,
+        typer.Option("--host", help="Bind address"),
+    ] = "127.0.0.1",
+    port: Annotated[
+        int,
+        typer.Option("--port", help="Bind port", min=1, max=65535),
+    ] = 8000,
+    log_level: Annotated[
+        str,
+        typer.Option("--log-level", help="Uvicorn log level"),
+    ] = "info",
+) -> None:
+    """Start the FastAPI server (for local/dev use)."""
+    import uvicorn  # local import to avoid import cost when not serving
+
+    uvicorn.run("poke_pricer.api.app:app", host=host, port=port, log_level=log_level)
+
+
+app.add_typer(api_app, name="api")
