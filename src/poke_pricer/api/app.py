@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import pandas as pd
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -10,7 +10,9 @@ from ..analytics.data_access import load_prices_df
 from ..analytics.movers import compute_top_movers
 from ..catalog.stats import catalog_summary_df
 
-# -------------------- Pydantic response models --------------------
+# -------------------------------
+# Pydantic models (request/response)
+# -------------------------------
 
 
 class HealthResponse(BaseModel):
@@ -38,7 +40,7 @@ class MoverItem(BaseModel):
     bucket: str
 
 
-class CardLite(BaseModel):
+class CardSearchItem(BaseModel):
     card_id: int
     name: str
     set_code: str
@@ -55,52 +57,127 @@ class CardDetail(BaseModel):
     source: str
 
 
-class PricePoint(BaseModel):
+class CardPricePoint(BaseModel):
     date: str
     price: float
     source: str
 
 
-# -------------------- FastAPI app + CORS --------------------
+class HoldingIn(BaseModel):
+    card_id: int
+    quantity: float
+
+
+class PortfolioValueRequest(BaseModel):
+    holdings: list[HoldingIn]
+
+
+class PositionValue(BaseModel):
+    card_id: int
+    name: str
+    set_code: str
+    number: str
+    quantity: float
+    price: float
+    value: float
+    date: str
+    source: str
+
+
+class PortfolioValueResponse(BaseModel):
+    total_value: float
+    positions: list[PositionValue]
+    missing_card_ids: list[int]
+
+
+# -------------------------------
+# FastAPI app + CORS
+# -------------------------------
 
 app = FastAPI(title="Pokemon Pricer API", version="0.1.0")
 
-# CORS: permissive for MVP; tighten later when UI origin is known.
+# Permissive CORS for MVP (adjust later when UI origin is known)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # TODO: lock down before production
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# -------------------- Helpers (typed) --------------------
+# -------------------------------
+# Helpers
+# -------------------------------
+
+
+def _normalize_prices_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Ensure expected columns, dtypes, and sort order."""
+    if df.empty:
+        return df.copy()
+
+    cols = [
+        "card_id",
+        "name",
+        "set_code",
+        "number",
+        "source",
+        "price",
+        "date",
+    ]
+    # Keep only known columns that exist
+    exists = [c for c in cols if c in df.columns]
+    out = df[exists].copy()
+
+    # Types
+    if "card_id" in out.columns:
+        out["card_id"] = pd.to_numeric(out["card_id"], errors="coerce").astype("Int64")
+    if "price" in out.columns:
+        out["price"] = pd.to_numeric(out["price"], errors="coerce")
+    if "date" in out.columns:
+        out["date"] = pd.to_datetime(out["date"], errors="coerce")
+
+    # Sort by date
+    sort_cols = [c for c in ["card_id", "date"] if c in out.columns]
+    if sort_cols:
+        out = out.sort_values(sort_cols).reset_index(drop=True)
+
+    # Drop rows missing essential fields
+    essential = [c for c in ["card_id", "date", "price"] if c in out.columns]
+    if essential:
+        out = out.dropna(subset=essential)
+
+    return out
 
 
 def _latest_per_card(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Return the latest row per card_id from a prices dataframe.
-
-    Expected columns: ['card_id', 'name', 'set_code', 'number', 'source', 'price', 'date'].
-    """
+    """Return latest row per card_id based on 'date'."""
     if df.empty:
-        return df
-    df_sorted = df.sort_values(["card_id", "date"])
-    idx = df_sorted.groupby("card_id")["date"].idxmax()
-    latest = df_sorted.loc[idx].sort_values("card_id")
+        return df.copy()
+    if "card_id" not in df.columns or "date" not in df.columns:
+        return df.iloc[0:0].copy()
+
+    srt = df.sort_values(["card_id", "date"])
+    latest = srt.groupby("card_id", as_index=False).tail(1).reset_index(drop=True)
     return latest
 
 
-# -------------------- Endpoints --------------------
+# -------------------------------
+# Endpoints
+# -------------------------------
 
 
-@app.get("/health", response_model=HealthResponse, tags=["System"])  # type: ignore[misc]
+@app.get("/health", response_model=HealthResponse, tags=["Meta"])  # type: ignore[misc]
 def health() -> HealthResponse:
     """Lightweight health endpoint."""
     return HealthResponse(status="ok", version="0.1.0")
 
 
-@app.get("/v1/catalog/summary", response_model=CatalogSummary, tags=["Catalog"])  # type: ignore[misc]
+@app.get(
+    "/v1/catalog/summary",
+    response_model=CatalogSummary,
+    tags=["Catalog"],
+)  # type: ignore[misc]
 def catalog_summary() -> CatalogSummary:
     """
     Return counts, date range, and sources from the catalog.
@@ -125,12 +202,19 @@ def catalog_summary() -> CatalogSummary:
     )
 
 
-@app.get("/v1/reports/top-movers", response_model=list[MoverItem], tags=["Reports"])  # type: ignore[misc]
+@app.get(
+    "/v1/reports/top-movers",
+    response_model=list[MoverItem],
+    tags=["Reports"],
+)  # type: ignore[misc]
 def top_movers(
     k: int = Query(5, ge=1, description="Top-K winners and losers"),
     on_date: str | None = Query(None, description="YYYY-MM-DD (optional)"),
 ) -> list[MoverItem]:
-    """Return top-K winners and losers for a day."""
+    """
+    Return top-K winners and losers for a day.
+    When there is no data, returns an empty list.
+    """
     df = load_prices_df()
     if df.empty:
         return []
@@ -153,86 +237,160 @@ def top_movers(
     return items
 
 
-# -------------------- New: Cards endpoints --------------------
-
-
-@app.get("/v1/cards/search", response_model=list[CardLite], tags=["Cards"])  # type: ignore[misc]
+@app.get(
+    "/v1/cards/search",
+    response_model=list[CardSearchItem],
+    tags=["Cards"],
+)  # type: ignore[misc]
 def card_search(
-    q: str = Query(..., min_length=1, description="Substring search on name/set_code/number"),
-) -> list[CardLite]:
-    """
-    Substring search across latest info for each card.
-    Returns [] if no data.
-    """
-    df = load_prices_df()
-    if df.empty:
+    q: str = Query(
+        ...,
+        min_length=1,
+        description="Name substring (case-insensitive)",
+    ),
+) -> list[CardSearchItem]:
+    """Search by name across the latest snapshot of each card."""
+    df_raw = load_prices_df()
+    if df_raw.empty:
         return []
 
+    df = _normalize_prices_df(df_raw)
     latest = _latest_per_card(df)
-    mask = (
-        latest["name"].str.contains(q, case=False, na=False)
-        | latest["set_code"].str.contains(q, case=False, na=False)
-        | latest["number"].str.contains(q, case=False, na=False)
-    )
-    rows = latest.loc[mask]
 
-    return [
-        CardLite(
+    mask = latest["name"].str.contains(q, case=False, na=False)
+    hits = latest.loc[mask, ["card_id", "name", "set_code", "number"]]
+    out = [
+        CardSearchItem(
             card_id=int(r["card_id"]),
             name=str(r["name"]),
             set_code=str(r["set_code"]),
             number=str(r["number"]),
         )
-        for r in rows.to_dict(orient="records")
+        for r in hits.to_dict(orient="records")
     ]
+    return out
 
 
-@app.get("/v1/cards/{card_id}", response_model=CardDetail, tags=["Cards"])  # type: ignore[misc]
+@app.get(
+    "/v1/cards/{card_id}",
+    response_model=CardDetail,
+    tags=["Cards"],
+)  # type: ignore[misc]
 def card_by_id(card_id: int) -> CardDetail:
-    """
-    Return latest details for a card by ID.
-    404 if the card_id does not exist.
-    """
-    df = load_prices_df()
-    if df.empty:
+    """Return card details using the latest price snapshot for that card."""
+    df_raw = load_prices_df()
+    if df_raw.empty:
         raise HTTPException(status_code=404, detail="Card not found")
 
-    latest = _latest_per_card(df)
-    row = latest.loc[latest["card_id"] == card_id]
-    if row.empty:
+    df = _normalize_prices_df(df_raw)
+    one = df.loc[df["card_id"] == card_id]
+    if one.empty:
         raise HTTPException(status_code=404, detail="Card not found")
 
-    r = row.iloc[0].to_dict()
+    last = one.sort_values("date").tail(1).iloc[0]
     return CardDetail(
-        card_id=int(r["card_id"]),
-        name=str(r["name"]),
-        set_code=str(r["set_code"]),
-        number=str(r["number"]),
-        last_price=float(r["price"]),
-        last_date=str(r["date"]),
-        source=str(r["source"]),
+        card_id=int(last["card_id"]),
+        name=str(last["name"]),
+        set_code=str(last["set_code"]),
+        number=str(last["number"]),
+        last_price=float(last["price"]),
+        last_date=str(last["date"]),
+        source=str(last["source"]),
     )
 
 
-@app.get("/v1/cards/{card_id}/prices", response_model=list[PricePoint], tags=["Cards"])  # type: ignore[misc]
-def card_price_history(
+@app.get(
+    "/v1/cards/{card_id}/prices",
+    response_model=list[CardPricePoint],
+    tags=["Cards"],
+)  # type: ignore[misc]
+def card_prices(
     card_id: int,
-    limit: int = Query(90, ge=1, le=1000, description="Max number of points, oldest→newest"),
-) -> list[PricePoint]:
-    """
-    Return historical price points for a card (up to `limit`).
-    404 if the card_id has no records.
-    """
-    df = load_prices_df()
-    if df.empty:
-        raise HTTPException(status_code=404, detail="Card not found")
+    limit: int = Query(
+        50,
+        ge=1,
+        le=500,
+        description="Max number of price points (most recent first)",
+    ),
+) -> list[CardPricePoint]:
+    """Return price history for a card (most recent first)."""
+    df_raw = load_prices_df()
+    if df_raw.empty:
+        return []
 
-    rows = df.loc[df["card_id"] == card_id].sort_values("date")
-    if rows.empty:
-        raise HTTPException(status_code=404, detail="Card not found")
+    df = _normalize_prices_df(df_raw)
+    one = df.loc[df["card_id"] == card_id]
+    if one.empty:
+        return []
 
-    rows = rows.tail(limit)
-    return [
-        PricePoint(date=str(r["date"]), price=float(r["price"]), source=str(r["source"]))
-        for r in rows.to_dict(orient="records")
+    # Most recent first, then trim to limit
+    one = one.sort_values("date", ascending=False).head(limit)
+    points = [
+        CardPricePoint(
+            date=str(r["date"]),
+            price=float(r["price"]),
+            source=str(r["source"]),
+        )
+        for r in one[["date", "price", "source"]].to_dict(orient="records")
     ]
+    return points
+
+
+@app.post(
+    "/v1/portfolio/value",
+    response_model=PortfolioValueResponse,
+    tags=["Portfolio"],
+)  # type: ignore[misc]
+def portfolio_value(
+    # Ruff rule B008: suppress Body(...) call in default param
+    req: PortfolioValueRequest = Body(  # noqa: B008
+        ...,
+        description="List of holdings (card_id, quantity)",
+    ),
+) -> PortfolioValueResponse:
+    """Compute current portfolio value based on latest prices."""
+    df_raw = load_prices_df()
+    if df_raw.empty:
+        return PortfolioValueResponse(
+            total_value=0.0,
+            positions=[],
+            missing_card_ids=[h.card_id for h in req.holdings],
+        )
+
+    df = _normalize_prices_df(df_raw)
+    latest = _latest_per_card(df)
+
+    idx = latest.set_index("card_id")
+    positions: list[PositionValue] = []
+    missing: list[int] = []
+    total_value = 0.0
+
+    for h in req.holdings:
+        if h.card_id not in idx.index:
+            missing.append(h.card_id)
+            continue
+
+        row = idx.loc[h.card_id]
+        price = float(row["price"])
+        value = price * h.quantity
+        total_value += value
+
+        positions.append(
+            PositionValue(
+                card_id=int(h.card_id),
+                name=str(row.get("name", "")),
+                set_code=str(row.get("set_code", "")),
+                number=str(row.get("number", "")),
+                quantity=float(h.quantity),
+                price=price,
+                value=value,
+                date=str(row.get("date", "")),
+                source=str(row.get("source", "")),
+            )
+        )
+
+    return PortfolioValueResponse(
+        total_value=float(total_value),
+        positions=positions,
+        missing_card_ids=missing,
+    )
