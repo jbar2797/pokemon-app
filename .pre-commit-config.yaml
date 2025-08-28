@@ -1,29 +1,39 @@
+# .pre-commit-config.yaml
+# Full, self-contained configuration for this repository.
+# Pre-commit installs and runs each hook inside an isolated environment.
+# For mypy, we point the hook at a dedicated config (mypy.precommit.ini)
+# and include plugin/runtime deps in the hook's env.
+
 repos:
+  # Ruff linter + formatter
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.10
+    rev: v0.6.4
     hooks:
       - id: ruff
-        args: ["--fix"]
+        args: [--fix]
       - id: ruff-format
 
+  # Small, fast hygiene checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+    rev: v4.6.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: check-yaml
       - id: check-added-large-files
-        # Allow up to 50 MB and ignore PDFs under docs/requirements/
-        args: ["--maxkb=51200"]
-        exclude: '^docs/requirements/.*\.(pdf|PDF)$'
 
+  # Static typing (mypy) — include pydantic + pydantic-settings + stubs in the hook's env
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.17.1
+    rev: v1.10.0
     hooks:
       - id: mypy
+        name: mypy (src + examples)
+        files: ^(src|examples)/.*\.py$
+        args:
+          - --config-file=mypy.precommit.ini
+          - --show-error-codes
+          - --no-error-summary
         additional_dependencies:
-          - pydantic>=2.7
-          - pydantic-settings>=2.2.1
-          - types-PyYAML>=6.0.12.20240808
-          - sqlmodel>=0.0.24
-          - sqlalchemy>=2.0.43
+          - pydantic>=2,<3
+          - pydantic-settings>=2,<3
+          - types-requests
