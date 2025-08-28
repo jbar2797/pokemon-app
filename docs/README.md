@@ -5,3 +5,7 @@
 - **PROJECT_LOG.md** – Sprint-by-sprint log of decisions.
 - **adr/** – Architecture Decision Records (ADRs).
 - **requirements/** – Place the SRS/PRD/Architecture/Backtesting/Signals artifacts here when we push to GitHub.
+
+## API Docs
+
+- [Cards API](docs/API_CARDS.md)
