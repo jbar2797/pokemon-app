@@ -22,6 +22,7 @@ dependencies = [
   "sqlmodel>=0.0.21",
   "fastapi>=0.116.1",
   "uvicorn[standard]>=0.35.0",
+  "requests>=2.32.5",
 ]
 
 [project.scripts]
@@ -38,6 +39,7 @@ dev-dependencies = [
   "types-PyYAML>=6.0.12.20240808",
   "pytest-cov>=6.2.1",
   "httpx>=0.28.1",
+  "types-requests>=2.32.4.20250809",
 ]
 
 [tool.pytest.ini_options]
